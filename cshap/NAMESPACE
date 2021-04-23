@@ -1,0 +1,2 @@
+useDynLib(cshap, .registration = TRUE)
+exportPattern("CS_HAP")
