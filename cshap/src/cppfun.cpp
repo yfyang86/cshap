@@ -9,43 +9,24 @@ using namespace Rcpp;
 // using namespace arma;
 using namespace std;
 
-//////////// 优化 haplo
+
 // [[Rcpp::export]]
-// // 将一个整数转化为二进制形式
-// old method
-// IntegerVector as_SNPv(int num, int length){
-//   char str[200];
-//   IntegerVector res(length, 0);
-//   _itoa(num, str, 2);
-//   int offset = length - strlen(str);
-//   // IntegerVector out(length);
-//   for (int i = offset; i < length ; i++){
-//     res[i] = str[i - offset] - '0';
-//   }
-//
-//  return res;
-// }
+// 将一个整数转化为二进制形式
 IntegerVector as_SNPv(int x, int q) {
   IntegerVector out(q);
-  int y = x;
-  int i = 0;
-  while (y > 0){
-    out[q - 1 - i] = y % 2;
-    y = y >> 1;
-    i++;
+  for (size_t i = 0; x > 0 & i< q; i++){
+    out[q - 1 - i] = x % 2;
+    x = x >> 1;
   }
   return out;
 }
 
 // [[Rcpp::export]]
-IntegerVector as_LSNPv(long x, int q) {
+IntegerVector as_LSNPv(long int x, int q) {
   IntegerVector out(q);
-  int y = x;
-  int i = 0;
-  while (y > 0){
-    out[q - 1 - i] = y % 2;
-    y = y >> 1;
-    i++;
+  for (int i = 0; x > 0 & i< q; i++){
+    out[q - 1 - i] = x % 2;
+    x = x >> 1;
   }
   return out;
 }
@@ -55,8 +36,13 @@ IntegerVector as_LSNPv(long x, int q) {
 IntegerMatrix haplo(int q){
   int r = pow(2, q);
   IntegerMatrix res(q, r);
+  int x;
   for (int i = 0; i < r ;i++){
-    res(_,i) = as_SNPv(i, q);
+    x = i;
+    for(int j = 0; x > 0 & j<q; j++){
+      res(q-1-j,i) = x%2;
+      x = x>>1;
+    }
   }
   return res;
 }
@@ -66,8 +52,13 @@ IntegerMatrix haplo(int q){
 IntegerMatrix haplo2(int q, IntegerVector htn){
   int m = htn.length();
   IntegerMatrix res(q, m);
+  int x;
   for (int i = 0; i < m; i++){
-    res(_,i) = as_SNPv(htn[i] - 1, q);
+    x = htn[i] - 1 ;
+    for(int j = 0; x > 0 & j<q; j++){
+      res(q-1-j,i) = x%2;
+      x = x>>1;
+    }
   }
   return res;
 }
@@ -80,7 +71,7 @@ IntegerMatrix create_psi3(IntegerMatrix hap){
   int crow = 0;
   for (int i = 1 ; i <= q - 1 ;i++){
     for (int j = i + 1; j <= q ; j++){
-      psi3(crow,_) = hap(i-1,_) * hap(j-1,_);
+      for (int k=0;k<hap.ncol();k++) psi3(crow,k) = (hap(i-1,k)==0 || hap(j-1,k)==0?0:1);
       ++crow ;
     }
   }
@@ -91,25 +82,47 @@ IntegerMatrix create_psi3(IntegerMatrix hap){
 // 从haplo(q) 矩阵直接生成psi，节约时间&方便扩展
 IntegerMatrix haplo2psi(IntegerMatrix hap){
   int q = hap.nrow();
+  int r = hap.nrcol();
   IntegerMatrix psi3 = create_psi3(hap);
-  IntegerVector psi1(hap.ncol(), 1);
   IntegerMatrix result(1 + q + psi3.nrow(), hap.ncol());
-  result(0, _) = psi1;
+  for(int i =0; i<r;i++) result(0, i) = 1;
   for (int i = 1; i < 1 + q + psi3.nrow(); i ++){
-    if (i < 1 + q)
-    {
+    if (i < 1 + q){
       result(i, _) = hap(i - 1, _);
-    }
-    else
-    {
+      }else{
       result(i, _) = psi3(i - 1 - q, _);
     }
   }
   return result;
 }
 
-
 IntegerMatrix create_psi(int q){
+  int r = pow(2,q);
+  int row2 = q*(q-1)/2;
+  int x;
+  int crow=1+q;
+  IntegerMatrix result(1 + q + row2, r);
+  // 1
+  for(int i = 0; i<r;i++) result(0, i) = 1;
+  // H
+  for (int i = 0; i < r ;i++){
+    x = i;
+    for(int j = 0; x > 0 & j<q; j++){
+      result(q-j,i) = x%2;
+      x = x>>1;
+    }
+  }
+  // H^H
+  for (int i = 1 ; i <= q  ;i++){
+    for (int j = i + 1; j <= q ; j++){
+      for (int k=0;k<r;k++) result(crow,k) = (result(i,k)==0 || result(j,k)==0?0:1);
+      ++crow ;
+    }
+  }
+  return result;
+}
+
+IntegerMatrix create_psi_slow(int q){
   IntegerMatrix hap = haplo(q);
   IntegerMatrix result = haplo2psi(hap);
   return result;
@@ -370,6 +383,18 @@ IntegerMatrix rep1_mat(IntegerMatrix A, int n){
     for (int j = 0; j < n; j++){
       out(_, i * n + j) = A(_,i);
     }
+  }
+  return out;
+}
+
+//[[Rcpp::export]]
+// Matrix is a vector with dim recording its ncol and nrow
+IntegerMatrix rep1_mat_fast(IntegerMatrix A, int n){
+  int rA = A.nrow(), cA = A.ncol();
+  int sA = rA*cA;
+  IntegerMatrix out(rA, cA*n);
+  for(size_t i=0; i< rA*cA*n; i++){
+    out[i] = A[i%sA];
   }
   return out;
 }
