@@ -5,7 +5,7 @@ Version: 0.1.0
 Author: Yinsheng Zhou, Han Zhang, Yifan Yang
 Maintainer: Yifan Yang <yfyang.86@hotmail.com>
 Description: CSHAP is an efficient algorithm for estimating haplotype frequencies from both individual and pooled genotype data. Estimating haplotype frequencies from genotype data plays an important role in genetic analysis. In silico methods are usually computationally involved since phase information is not available. Due to tight linkage disequilibrium and low recombination rates, the number of haplotypes observed in human populations is far less than all the possibilities. This motivates us to solve the estimation problem by maximizing the sparsity of existing haplotypes. Here, CSHAP proposes a new algorithm by applying the compressive sensing (CS) theory in the field of signal processing, compressive sensing haplotype inference (CSHAP), to solve the sparse representation of haplotype frequencies based on allele frequencies and between-allele co-variances.
-Depends: plyr, dplyr, purrr, pryr, Rcpp, memoise, bootstrap, spam
+Depends: plyr, dplyr, purrr, pryr, Rcpp, memoise, bootstrap, spams
 License: Apache License Version 2.0
 LinkingTo: Rcpp
 NeedsCompilation: yes

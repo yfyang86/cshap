@@ -1,2 +1,3 @@
-useDynLib(cshap, .registration = TRUE)
-exportPattern("CS_HAP")
+useDynLib(cshap)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)

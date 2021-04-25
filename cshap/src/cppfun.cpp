@@ -11,8 +11,8 @@ using namespace std;
 
 
 // [[Rcpp::export]]
-// 将一个整数转化为二进制形式
 IntegerVector as_SNPv(int x, int q) {
+  // 将一个整数转化为二进制形式
   IntegerVector out(q);
   for (size_t i = 0; x > 0 & i< q; i++){
     out[q - 1 - i] = x % 2;
@@ -31,7 +31,6 @@ IntegerVector as_LSNPv(long int x, int q) {
   return out;
 }
 
-// haplo()
 // [[Rcpp::export]]
 IntegerMatrix haplo(int q){
   int r = pow(2, q);
@@ -82,7 +81,7 @@ IntegerMatrix create_psi3(IntegerMatrix hap){
 // 从haplo(q) 矩阵直接生成psi，节约时间&方便扩展
 IntegerMatrix haplo2psi(IntegerMatrix hap){
   int q = hap.nrow();
-  int r = hap.nrcol();
+  int r = hap.ncol();
   IntegerMatrix psi3 = create_psi3(hap);
   IntegerMatrix result(1 + q + psi3.nrow(), hap.ncol());
   for(int i =0; i<r;i++) result(0, i) = 1;
@@ -96,6 +95,7 @@ IntegerMatrix haplo2psi(IntegerMatrix hap){
   return result;
 }
 
+// [[Rcpp::export]]
 IntegerMatrix create_psi(int q){
   int r = pow(2,q);
   int row2 = q*(q-1)/2;
@@ -244,8 +244,8 @@ List countint_detail(IntegerVector ux, IntegerVector x){
 
 
 // [[Rcpp::export]]
-// 判断向量x与矩阵A所有行是否相等，返回的是一个逻辑向量
 LogicalVector match_row(IntegerVector x, IntegerMatrix A){
+  // 判断向量x与矩阵A所有行是否相等，返回的是一个逻辑向量
     LogicalVector res(A.nrow());
       for (int i = 0; i < A.nrow(); i++){
         res[i] = is_true(all(x == A(i,_)));
@@ -255,8 +255,8 @@ LogicalVector match_row(IntegerVector x, IntegerMatrix A){
 
 
 // [[Rcpp::export]]
-// 向量x与矩阵A所有行有多少行相等，返回的是一个数
 int count_row(IntegerVector x, IntegerMatrix A){
+  // 向量x与矩阵A所有行有多少行相等，返回的是一个数
   int out;
   LogicalVector matchres = match_row(x, A);
   out = sum(matchres);
@@ -264,8 +264,8 @@ int count_row(IntegerVector x, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 矩阵uA的每一行与矩阵A有多少个相等的。
 IntegerVector count_row_mat(IntegerMatrix uA, IntegerMatrix A){
+  // 矩阵uA的每一行与矩阵A有多少个相等的。
   IntegerVector out(uA.nrow());
   for (int i = 0; i < uA.nrow(); i++){
     LogicalVector matchres = match_row(uA(i,_), A);
@@ -276,8 +276,8 @@ IntegerVector count_row_mat(IntegerMatrix uA, IntegerMatrix A){
 
 
 // [[Rcpp::export]]
-// 判断向量x与矩阵A中的哪一行相等，注：必须保证有且仅有唯一一行相等，返回的是r风格的行号坐标
 int which_row(IntegerVector x, IntegerMatrix A){
+  // 判断向量x与矩阵A中的哪一行相等，注：必须保证有且仅有唯一一行相等，返回的是r风格的行号坐标
   int i = 0;
   while(is_false(all(x == A(i,_)))){
     i++;
@@ -286,8 +286,8 @@ int which_row(IntegerVector x, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 矩阵uA的每一行与矩阵A有多少个相等的。并且这些相等行在A中的行坐标
 List count_row_mat_detail(IntegerMatrix uA, IntegerMatrix A){
+  // 矩阵uA的每一行与矩阵A有多少个相等的。并且这些相等行在A中的行坐标
   IntegerVector out(uA.nrow());
   IntegerVector matchidx = seq_len(A.nrow());
   List res2(uA.nrow());
@@ -303,8 +303,8 @@ List count_row_mat_detail(IntegerMatrix uA, IntegerMatrix A){
 
 
 // [[Rcpp::export]]
-// 判断某个向量x与矩阵A所有列是否相等，返回的是一个逻辑向量
 LogicalVector match_col(IntegerVector x, IntegerMatrix A){
+  // 判断某个向量x与矩阵A所有列是否相等，返回的是一个逻辑向量
   LogicalVector res(A.ncol());
   for (int i = 0; i < A.ncol(); i++){
     res[i] = is_true(all(x == A(_,i)));
@@ -313,8 +313,8 @@ LogicalVector match_col(IntegerVector x, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 向量x与矩阵A所有行有多少列相等，返回的是一个数
 int count_col(IntegerVector x, IntegerMatrix A){
+  // 向量x与矩阵A所有行有多少列相等，返回的是一个数
   int out;
   LogicalVector matchres = match_col(x, A);
   out = sum(matchres);
@@ -322,8 +322,8 @@ int count_col(IntegerVector x, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 矩阵uA的每一列与矩阵A有多少个相等的。
 IntegerVector count_col_mat(IntegerMatrix uA, IntegerMatrix A){
+  // 矩阵uA的每一列与矩阵A有多少个相等的。
   IntegerVector out(uA.ncol());
   for (int i = 0; i < uA.ncol(); i++){
     LogicalVector matchres = match_col(uA(_,i), A);
@@ -333,8 +333,8 @@ IntegerVector count_col_mat(IntegerMatrix uA, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 判断向量x与矩阵A中的哪一列相等，注：必须保证有且仅有唯一一列相等，返回的是r风格的列号坐标
 int which_col(IntegerVector x, IntegerMatrix A){
+  // 判断向量x与矩阵A中的哪一列相等，注：必须保证有且仅有唯一一列相等，返回的是r风格的列号坐标
   int i = 0;
   while(is_false(all(x == A(_,i)))){
     i++;
@@ -343,8 +343,8 @@ int which_col(IntegerVector x, IntegerMatrix A){
 }
 
 // [[Rcpp::export]]
-// 矩阵uA的每一列与矩阵A有多少个相等的。并且这些相等列在A中的列坐标
 List count_col_mat_detail(IntegerMatrix uA, IntegerMatrix A){
+  // 矩阵uA的每一列与矩阵A有多少个相等的。并且这些相等列在A中的列坐标
   IntegerVector out(uA.ncol());
   IntegerVector matchidx = seq_len(A.ncol());
   List res2(uA.ncol());
@@ -360,8 +360,8 @@ List count_col_mat_detail(IntegerMatrix uA, IntegerMatrix A){
 
 
 // [[Rcpp::export]]
-// # 一个向量a与向量b连接
 IntegerVector ligation_vec(IntegerVector a, IntegerVector b){
+// # 一个向量a与向量b连接
   int la = a.size(), lb = b.size();
   IntegerVector out(la + lb);
   for (int i = 0; i < la; i++){
@@ -375,8 +375,8 @@ IntegerVector ligation_vec(IntegerVector a, IntegerVector b){
 
 
 //[[Rcpp::export]]
-//##  将一个矩阵重复n次，每一列分别重复n次，再并起来
 IntegerMatrix rep1_mat(IntegerMatrix A, int n){
+  //##  将一个矩阵重复n次，每一列分别重复n次，再并起来
   int nA = A.nrow(), cA = A.ncol();
   IntegerMatrix out(nA, cA*n);
   for (int i = 0; i < cA; i++){
@@ -388,8 +388,8 @@ IntegerMatrix rep1_mat(IntegerMatrix A, int n){
 }
 
 //[[Rcpp::export]]
-// Matrix is a vector with dim recording its ncol and nrow
 IntegerMatrix rep1_mat_fast(IntegerMatrix A, int n){
+// Matrix is a vector with dim recording its ncol and nrow
   int rA = A.nrow(), cA = A.ncol();
   int sA = rA*cA;
   IntegerMatrix out(rA, cA*n);

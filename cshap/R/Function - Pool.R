@@ -1,7 +1,7 @@
 quad_form <- function(A, x){
   # 二次型的快速计算方法
   return(sum(x * (A %*% x)))
-  
+
 }
 
 
@@ -47,6 +47,7 @@ AEM2r <- function(genodata, epsilon=1e-5, Nind = 50, p_initial = NULL, Allhaplo 
   # Rh[supp(p)] <- 1
   # Rh <- Rh / length(supp(p))
   # IF <- rep(0, r)
+  p = as.vector(p)
   repeat {
     ii = ii + 1
     #sigma0=var(genodata)
@@ -66,10 +67,10 @@ AEM2r <- function(genodata, epsilon=1e-5, Nind = 50, p_initial = NULL, Allhaplo 
     rh2expcoef <- rh2res
     for (j in seq_along(idx)) {
       h = H[idx[j], ]
-      o_m_h <- omega - h 
+      o_m_h <- omega - h
       rh1expcoef[j] <- -1 / (4 * Nind) * sum(o_m_h * (si %*% o_m_h))
       tmp = sweep(genodata / (2 * Nind), 2, omega, "-")
-      
+
       tmpsi <- tmp %*% si
       expcoef <- - tmpsi %*% o_m_h - colSums(t(tmpsi) * t(tmp)) /2
       rh2expcoef[j,] <- expcoef
@@ -135,10 +136,10 @@ LAEM2r <- function(genodata, refHaplo = NULL, epsilon=1e-5, Nind = 50, p_initial
     rh2expcoef <- rh2res
     for (j in 1:r) {
       h = H2[j, ]
-      o_m_h <- omega - h 
+      o_m_h <- omega - h
       rh1expcoef[j] <- -1 / (4 * Nind) * sum(o_m_h * (si %*% o_m_h))
       tmp = sweep(genodata / (2 * Nind), 2, omega, "-")
-      
+
       tmpsi <- tmp %*% si
       expcoef <- - tmpsi %*% o_m_h - colSums(t(tmpsi) * t(tmp)) /2
       rh2expcoef[j,] <- expcoef
@@ -168,9 +169,9 @@ LAEM2r <- function(genodata, refHaplo = NULL, epsilon=1e-5, Nind = 50, p_initial
     p <- p[S_idx]
     p <- p / sum(p)
     H2 <- H2[S_idx,,drop = FALSE]
-    
+
   } #end of repeat
-  
+
   return(list(freq = haplofreq0(q = q, ht = t(H2))))
 } # end of AEM
 
@@ -197,7 +198,7 @@ AES2r <- function(genodata, rho, Nind = 50, p_initial = NULL, epsilon = 1e-6, Al
   Rh <- rep(0, r)
   Rh[supp(p)] <- 1
   Rh <- Rh / length(supp(p))
-  
+
   ii = 0
   repeat {
     ii = ii + 1
@@ -208,11 +209,11 @@ AES2r <- function(genodata, rho, Nind = 50, p_initial = NULL, epsilon = 1e-6, Al
     eta <- crossprod(H2, diag(p2)) %*% H2
     sigma0 <- eta - tcrossprod(omega, omega)
     sigma0 <- (1 + rho) * sigma0
-    
+
     si = ginverse(sigma0)
     si1 = si / (2 * Nind - 2)
     si2 = si / (2 * Nind)
-    
+
     IF <- rep(0, r) # importance factor
     for (j_idx in seq_along(idx)) {
       j <- idx[j_idx]
@@ -228,13 +229,13 @@ AES2r <- function(genodata, rho, Nind = 50, p_initial = NULL, epsilon = 1e-6, Al
           h2 = H2[jj_idx, ]
           pr <- (1 - rho) * p[jj] + rho * (j == jj)
           arg <- Ai - h1 - h2
-          arg2 <- arg - 2 * (Nind - 1) * omega 
+          arg2 <- arg - 2 * (Nind - 1) * omega
           ep1 <- sum(arg2 * (si1 %*% arg2))
           arg3 <- Ai - 2 * Nind * omega
           ep2 <- sum(arg3 * (si2 %*% arg3))
           tjj <- exp(-(ep1 - ep2)/2)
           rw <- rw + pr * tjj
-          
+
         }
         Rj[i] <- rw
       }
@@ -248,7 +249,7 @@ AES2r <- function(genodata, rho, Nind = 50, p_initial = NULL, epsilon = 1e-6, Al
     if (is.na(tmp)) return(NA)
     # in retrospect, this line should appear after the next line, but never mind
     p.new[p.new < 1 / 2 ^ q * 1e-3] = 0
-    p.new = p.new / tmp  
+    p.new = p.new / tmp
     delta <- sum(abs(p.new - p))
     # cat('i=', ii, ', delta=', delta, '\n')
     if (delta < epsilon | ii > 2000)
@@ -266,7 +267,7 @@ CSHAPAEM <- function(genodata, Nind = 50,
                      rho = 0, HWE = TRUE, epsilon=1e-5, .RM_Mat = NULL){
   q <- ncol(genodata)
   Allhaplo <- haplo(q)
-  
+
   if (!HWE && !rho){
     ## Adaptive
     if (boot_rho(genodata, Nind = Nind, nboot = 100, check = FALSE)){
@@ -275,7 +276,7 @@ CSHAPAEM <- function(genodata, Nind = 50,
       rho <- 0
     }
   }
-  
+
   if (abs(rho) <= 1e-2){
     p_init <- CSHAP(genodata = genodata, Nind = Nind, rho = 0,quantile_thres = 0.5, HWE = TRUE,
                     Allhaplo = Allhaplo, .RM_Mat = .RM_Mat)
@@ -284,7 +285,7 @@ CSHAPAEM <- function(genodata, Nind = 50,
   } else {
     p_init <- CSHAP(genodata = genodata, Nind = Nind, rho = rho, quantile_thres = 0.5,
                     Allhaplo = Allhaplo, .RM_Mat = .RM_Mat)
-    res <- AES2r(genodata, rho = rho, Nind = Nind, p_initial = p_init, 
+    res <- AES2r(genodata, rho = rho, Nind = Nind, p_initial = p_init,
                  epsilon = epsilon, Allhaplo = Allhaplo)
   }
   # HWD
@@ -302,13 +303,13 @@ ligation2LCSAEM <- function(genodata, ResA, ResB, rho = 0, Nind = 1, epsilon =1e
   if (anyNA(ref_p)) {
     p <- outer(ResA$freq$p, ResB$freq$p)
     ref_p <- c(t(p))
-  } 
+  }
   S_idx <- ref_p > 0
   refHaplo <- my_Haploset[, S_idx, drop = FALSE]
   ref_p <- ref_p[S_idx]
   ref_p <- as.vector(ref_p)
   ref_p <- ref_p / sum(ref_p)
-  
+
   res <- LAEM2r(genodata = genodata, refHaplo = refHaplo, Nind = Nind, epsilon = epsilon, p_initial = ref_p)
   return(res)
 }
@@ -327,16 +328,16 @@ PLCSHAPLAEM <- function(genodata, Nind = 50, rho = 0, HWE = TRUE, epsilon =  1e-
   genodata_list <- vector(mode = 'list', length = blocks)
   names(genodata_list) <- paste0('block', 1:blocks)
   P_Res <-  genodata_list
-  
+
   # if (! memoise::is.memoised(haplo)) haplo <-memoise::memoise(haplo)
-  
+
   Allhaploi <-  haplo(pconfig[1,3])
   .RM_Mati <- haplo2RM(Allhaploi)
-  
+
   for (i in seq_len(blocks)){
     genodata_list[[i]] <- genodata[, pconfig[i,1] : pconfig[i,2], drop = FALSE]
     if (i <= blocks - 2) {
-      resi <- CSHAPAEM(genodata = genodata_list[[i]], rho = rho, HWE = HWE, 
+      resi <- CSHAPAEM(genodata = genodata_list[[i]], rho = rho, HWE = HWE,
                         Nind = Nind, epsilon = epsilon, .RM_Mat = .RM_Mati)
     } else {
       resi <- CSHAPAEM(genodata = genodata_list[[i]], rho = rho, HWE = HWE,
@@ -344,7 +345,7 @@ PLCSHAPLAEM <- function(genodata, Nind = 50, rho = 0, HWE = TRUE, epsilon =  1e-
     }
     P_Res[[i]] <- resi
   }
-  
+
   # return(pconfig)
   # names(P_Res) <- 1:blocks
   ### 对每一块进行计算
@@ -357,17 +358,17 @@ PLCSHAPLAEM <- function(genodata, Nind = 50, rho = 0, HWE = TRUE, epsilon =  1e-
     colnames(newpconfig) <- colnames(pconfig)
     New_P_Res <- vector('list', newblocks)
     names(New_P_Res) <- 1:newblocks
-    New_genodata_list <- New_ugdata_list <- New_P_Res 
+    New_genodata_list <- New_ugdata_list <- New_P_Res
     for (i in seq_len(new_p_len)){
       ## 连接 newpconfig
-      newpconfig[i, 1] <- newstart <- pconfig[2*i-1, 1]  
+      newpconfig[i, 1] <- newstart <- pconfig[2*i-1, 1]
       newpconfig[i, 2] <- newend <- pconfig[2*i, 2]
       newpconfig[i, 3] <- pconfig[2*i-1, 3]  + pconfig[2*i, 3]
       new_genodata <- genodata[, newstart : newend, drop = FALSE]
       # stopifnot( !l2dist(new_ugdata$udata[new_ugdata$uidx,], new_genodata) ) # 调试用，待会删
       new_out <- ligation2LCSAEM(genodata = new_genodata,  ResA = P_Res[[ 2 * i - 1]],  ResB = P_Res[[ 2 * i ]], rho = 0,
                                  Nind = Nind, epsilon = epsilon)
-      
+
       New_P_Res[[i]] <- new_out
       New_genodata_list[[i]] <- new_genodata
     }
@@ -381,7 +382,7 @@ PLCSHAPLAEM <- function(genodata, Nind = 50, rho = 0, HWE = TRUE, epsilon =  1e-
     P_Res <- New_P_Res
     genodata_list <- New_genodata_list
   }
-  
+
   out <- New_P_Res[[1]]
   return(out)
 }
